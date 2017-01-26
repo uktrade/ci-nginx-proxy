@@ -3,8 +3,8 @@
 set -euo pipefail
 
 # Validate environment variables
-: "${REDIRECT_DEST:?Set REDIRECT_DEST using --env}"
-: "${REDIRECT_CODE:?Set REDIRECT_CODE using --env}"
+: "${PROXY_TARGET:?Set PROXY_TARGET using --env}"
+: "${TARGET_PORT:?Set TARGET_PORT using --env}"
 : "${HOST:?Set HOST using --env}"
 : "${SSL_CERT:?Set SSL_CERT using --env}"
 : "${SSL_KEY:?Set SSL_KEY using --env}"
@@ -32,37 +32,28 @@ EOF
 cat <<EOF >>/etc/nginx/nginx.conf
 
 http {
-  server_tokens off;
   access_log /var/log/nginx/access.log;
   error_log /var/log/nginx/error.log;
 
   server {
-    server_name ${HOST} www.${HOST};
-    expires 1h;
-    add_header Cache-Control "public, must-revalidate";
-    return ${REDIRECT_CODE} ${REDIRECT_DEST}\$request_uri;
-  }
-
-  server {
     listen 443 ssl;
-    server_name ${HOST} www.${HOST};
-    expires 1h;
-    add_header Cache-Control "public, must-revalidate";
+    server_name ${HOST};
+    root /usr/share/nginx/html;
     ssl_certificate /server.crt;
     ssl_certificate_key /server.key;
-    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
-    ssl_prefer_server_ciphers on;
-    ssl_stapling on;
-    ssl_stapling_verify on;
-    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload";
-    add_header X-Frame-Options DENY;
-    add_header X-Content-Type-Options nosniff;
-    return ${REDIRECT_CODE} ${REDIRECT_DEST}\$request_uri;
+
+  location / {
+    proxy_pass http://${PROXY_TARGET}:${TARGET_PORT};
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+  
   }
 }
 EOF
 
-echo "Redirecting to ${REDIRECT_DEST} (HTTP ${REDIRECT_CODE})"
 
 # Launch nginx in the foreground
 /usr/sbin/nginx -g "daemon off;"
