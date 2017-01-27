@@ -5,19 +5,26 @@ set -euo pipefail
 # Validate environment variables
 : "${PROXY_TARGET:?Set PROXY_TARGET using --env}"
 : "${TARGET_PORT:?Set TARGET_PORT using --env}"
-: "${HOST:?Set HOST using --env}"
-: "${SSL_CERT:?Set SSL_CERT using --env}"
-: "${SSL_KEY:?Set SSL_KEY using --env}"
+#: "${HOST:?Set HOST using --env}"
+#: "${SSL_CERT:?Set SSL_CERT using --env}"
+#: "${SSL_KEY:?Set SSL_KEY using --env}"
 
 # SSL certificate
-cat <<EOF > /server.crt
-${SSL_CERT}
-EOF
+#cat <<EOF > /server.crt
+#${SSL_CERT}
+#EOF
 
 # SSL key
-cat <<EOF > /server.key
-${SSL_KEY}
-EOF
+#cat <<EOF > /server.key
+#${SSL_KEY}
+#EOF
+
+echo ">> generating self signed cert"
+openssl req -x509 -newkey rsa:4086 \
+-subj "/C=XX/ST=XXXX/L=XXXX/O=XXXX/CN=localhost" \
+-keyout "/key.pem" \
+-out "/cert.pem" \
+-days 3650 -nodes -sha256
 
 # Template an nginx.conf
 cat <<EOF >/etc/nginx/nginx.conf
@@ -37,7 +44,7 @@ http {
 
   server {
     listen 443 ssl;
-    server_name ${HOST};
+    server_name localhost;
     root /usr/share/nginx/html;
     ssl_certificate /server.crt;
     ssl_certificate_key /server.key;
