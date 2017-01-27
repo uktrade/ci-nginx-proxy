@@ -46,8 +46,8 @@ http {
     listen 443 ssl;
     server_name localhost;
     root /usr/share/nginx/html;
-    ssl_certificate /server.crt;
-    ssl_certificate_key /server.key;
+    ssl_certificate /cert.pem;
+    ssl_certificate_key /key.pem;
 
   location / {
     proxy_pass http://${PROXY_TARGET}:${TARGET_PORT};
