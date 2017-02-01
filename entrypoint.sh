@@ -39,7 +39,7 @@ http {
     ssl_certificate_key /key.pem;
   
   location /static {
-    alias /usr/share/nginx/html;
+    alias /usr/share/nginx/html/static;
   }
 
   location / {
