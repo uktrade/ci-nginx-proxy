@@ -26,6 +26,10 @@ EOF
 
 cat <<EOF >>/etc/nginx/nginx.conf
 
+upstream rattic {
+  server ${PROXY_TARGET}:${TARGET_PORT};
+}
+
 http {
   access_log /var/log/nginx/access.log;
   error_log /var/log/nginx/error.log;
@@ -38,11 +42,26 @@ http {
     ssl_certificate_key /key.pem;
 
   location / {
-    proxy_pass http://${PROXY_TARGET}:${TARGET_PORT};
-    proxy_set_header Host \$http_host;
-    proxy_set_header X-Real-IP \$remote_addr;
-    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto \$scheme;
+    uwsgi_pass  rattic;
+    uwsgi_param QUERY_STRING    \$query_string;
+    uwsgi_param REQUEST_METHOD  \$request_method;
+    uwsgi_param CONTENT_TYPE    \$content_type;
+    uwsgi_param CONTENT_LENGTH  \$content_length;
+    uwsgi_param REQUEST_URI     \$request_uri;
+    uwsgi_param PATH_INFO       \$document_uri;
+    uwsgi_param DOCUMENT_ROOT   \$document_root;
+    uwsgi_param SERVER_PROTOCOL \$server_protocol;
+    uwsgi_param HTTPS           \$https if_not_empty;
+    uwsgi_param REMOTE_ADDR     \$remote_addr;
+    uwsgi_param REMOTE_PORT     \$remote_port;
+    uwsgi_param SERVER_PORT     \$server_port;
+    uwsgi_param SERVER_NAME     \$server_name;
+    
+    #proxy_pass http://${PROXY_TARGET}:${TARGET_PORT};
+    #proxy_set_header Host \$http_host;
+    #proxy_set_header X-Real-IP \$remote_addr;
+    #proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    #proxy_set_header X-Forwarded-Proto \$scheme;
   }
   
   }
