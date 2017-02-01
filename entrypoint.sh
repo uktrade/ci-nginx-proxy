@@ -26,9 +26,9 @@ EOF
 
 cat <<EOF >>/etc/nginx/nginx.conf
 
-upstream rattic {
-  server ${PROXY_TARGET}:${TARGET_PORT};
-}
+#upstream rattic {
+#  server ${PROXY_TARGET}:${TARGET_PORT};
+#}
 
 http {
   access_log /var/log/nginx/access.log;
@@ -42,7 +42,7 @@ http {
     ssl_certificate_key /key.pem;
 
   location / {
-    uwsgi_pass  rattic;
+    uwsgi_pass  http://${PROXY_TARGET}:${TARGET_PORT};
     uwsgi_param QUERY_STRING    \$query_string;
     uwsgi_param REQUEST_METHOD  \$request_method;
     uwsgi_param CONTENT_TYPE    \$content_type;
