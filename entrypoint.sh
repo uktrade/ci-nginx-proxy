@@ -22,6 +22,8 @@ worker_processes 2;
 events {
   worker_connections 1024;
 }
+
+include /etc/nginx/mime.types;
 EOF
 
 cat <<EOF >>/etc/nginx/nginx.conf
@@ -37,28 +39,21 @@ http {
     #root /usr/share/nginx/html;
     ssl_certificate /cert.pem;
     ssl_certificate_key /key.pem;
-  
-  location /static {
-    alias /usr/share/nginx/html/static;
-  }
-
-  location / {
-    uwsgi_pass  ${PROXY_TARGET}:${TARGET_PORT};
-    uwsgi_param QUERY_STRING    \$query_string;
-    uwsgi_param REQUEST_METHOD  \$request_method;
-    uwsgi_param CONTENT_TYPE    \$content_type;
-    uwsgi_param CONTENT_LENGTH  \$content_length;
-    uwsgi_param REQUEST_URI     \$request_uri;
-    uwsgi_param PATH_INFO       \$document_uri;
-    uwsgi_param DOCUMENT_ROOT   \$document_root;
-    uwsgi_param SERVER_PROTOCOL \$server_protocol;
-    uwsgi_param HTTPS           \$https if_not_empty;
-    uwsgi_param REMOTE_ADDR     \$remote_addr;
-    uwsgi_param REMOTE_PORT     \$remote_port;
-    uwsgi_param SERVER_PORT     \$server_port;
-    uwsgi_param SERVER_NAME     \$server_name;
     
-  }
+    real_ip_header X-Forwarded-For;
+    real_ip_recursive on;
+    set_real_ip_from 172.16.0.0/20;
+    set_real_ip_from 192.168.0.0/16;
+    set_real_ip_from 10.0.0.0/8;
+  
+    location /static {
+      alias /usr/share/nginx/html/static;
+    }
+
+    location / {
+      include /etc/nginx/uwsgi_params;
+      uwsgi_pass  ${PROXY_TARGET}:${TARGET_PORT};
+    }
   
   }
 }
