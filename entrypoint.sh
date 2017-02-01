@@ -23,7 +23,6 @@ events {
   worker_connections 1024;
 }
 
-include /etc/nginx/mime.types;
 EOF
 
 cat <<EOF >>/etc/nginx/nginx.conf
@@ -40,6 +39,7 @@ http {
     ssl_certificate /cert.pem;
     ssl_certificate_key /key.pem;
     
+    include /etc/nginx/mime.types;
     real_ip_header X-Forwarded-For;
     real_ip_recursive on;
     set_real_ip_from 172.16.0.0/20;
