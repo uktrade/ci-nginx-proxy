@@ -26,9 +26,6 @@ EOF
 
 cat <<EOF >>/etc/nginx/nginx.conf
 
-#upstream rattic {
-#  server ${PROXY_TARGET}:${TARGET_PORT};
-#}
 
 http {
   access_log /var/log/nginx/access.log;
@@ -37,9 +34,13 @@ http {
   server {
     listen 443 ssl;
     server_name localhost;
-    root /usr/share/nginx/html;
+    #root /usr/share/nginx/html;
     ssl_certificate /cert.pem;
     ssl_certificate_key /key.pem;
+  
+  location /static {
+    alias /usr/share/nginx/html;
+  }
 
   location / {
     uwsgi_pass  ${PROXY_TARGET}:${TARGET_PORT};
@@ -57,11 +58,6 @@ http {
     uwsgi_param SERVER_PORT     \$server_port;
     uwsgi_param SERVER_NAME     \$server_name;
     
-    #proxy_pass http://${PROXY_TARGET}:${TARGET_PORT};
-    #proxy_set_header Host \$http_host;
-    #proxy_set_header X-Real-IP \$remote_addr;
-    #proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-    #proxy_set_header X-Forwarded-Proto \$scheme;
   }
   
   }
