@@ -42,7 +42,7 @@ http {
     ssl_certificate_key /key.pem;
 
   location / {
-    uwsgi_pass  server ${PROXY_TARGET}:${TARGET_PORT};
+    uwsgi_pass  ${PROXY_TARGET}:${TARGET_PORT};
     uwsgi_param QUERY_STRING    \$query_string;
     uwsgi_param REQUEST_METHOD  \$request_method;
     uwsgi_param CONTENT_TYPE    \$content_type;
